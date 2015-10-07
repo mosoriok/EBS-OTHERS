@@ -1,0 +1,63 @@
+How to Use Forms Personalization to Restrict Values in Customer Number LOV in Sales Order Form OEXOEORD (Doc ID 862066.1)	To BottomTo Bottom	
+
+In this Document
+	Goal
+	Solution
+
+Applies to:
+Oracle Order Management - Version 11.5.10.0 to 12.2.2 [Release 11.5.10 to 12.2]
+Information in this document applies to any platform.
+FORM:OEXOEORD.FMB - Sales Orders
+*** Checked for relevance on 22-May-2015 ***
+
+Goal
+
+The goal is to meet the requirement to restrict/limit the values in the Customer Number field LOV (List of Values) in the sales order form using Forms Personalizations.
+Solution
+
+The following is an example of how this can be set up.
+
+1. Go to the Forms Personalization screen from the sales order form (Help>Diagnostics>Custom Code>Personalize).
+
+2. Enter the following in the Condition tab.
+
+Trigger Event = WHEN-NEW-ITEM-INSTANCE
+Trigger Object = ORDER.CUSTOMER_NUMBER  
+   *Note this example is for the Customer Number field, not the Customer field.
+
+Context (if restricting to a specific user):
+Level = User 
+Value = <User Name>
+
+3. Enter the following in the Actions tab. Here we have two sequence lines. We are restricting the Customer Number LOV to only show account_number=1608.
+
+Seq 10, Type = Builtin
+Builtin Type = Create Record Group from Query
+
+Argument =
+select acct.account_number account_number, acct.account_name account_description,
+party.party_number registry_id, party.party_name party_name,
+party.party_type, acct.cust_account_id cust_account_id,
+party.email_address email_address, nvl(party.gsa_indicator_flag,'N') gsa_indicator
+FROM
+HZ_PARTIES PARTY, hz_cust_accounts acct WHERE (ACCOUNT_NUMBER = 1608) AND (acct.party_id=party.party_id AND acct.status='A' ) order by party_name
+
+*Note, in order to build this statement, we first took a trace (Help>Diagnostics>Trace>Trace with Binds) of the action to invoke the Customer Number LOV 'before' setting up the Forms Personalization. We created this sql statement in the same way as the statement seen in the trace file, but replacing the WHERE condition for the account_number with an actual value that we wanted to restrict the LOV. We found that if the sql entered in the Argument field was missing one of the selected columns, for example, 'nvl(party.gsa_indicator_flag,'N') gsa_indicator', the LOV restriction did not happen. Hence, if the setup in this note is not working, it is recommended to take similar troubleshooting steps by generating a trace file.
+*There is no semicolon at the end of the statement.
+
+Group Name = TEST_FOR_OEXOEORD
+--
+Seq 20, Type = Property
+Object Type = LOV
+Target Object = CUSTOMER_NUMBER
+Property Name = GROUP_NAME
+Value = TEST_FOR_OEXOEORD
+
+ 
+1. Select the "Rate this document" link. Depending on how you are viewing the note, you will find the link on the:
+a) bottom left when viewing the note in a separate window.
+b) upper right when viewing the note in the My Oracle Support window.
+
+2. In the resulting pop-up box, enter your comments and ratings for the document.
+
+3. Select Send Rating.
